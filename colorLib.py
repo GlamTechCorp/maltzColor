@@ -54,22 +54,25 @@ def toReflectance(col) :
         ref = ((ref + fac) / (1+fac)) ** 2.4
     return ref
 
-def showFace(shading, skin, opacity, csm) :
+def showFace(shading, skin, thickness, csm) :
     """
     shading is a numpy array capturing the variation in light intensity on the face.
     It is 1.0 where the facial color is equal to the skin reflectance.
     skin is a BGR numpy array showing linear skin reflectance normalized 0.0 to 1.0
-    opacity is the opacity of the cosmetic layer (0 is transparent, 3 or 4 is pretty opaque)
-    cosmetic is the [B G R] tuple with the reflectance of a very thick layer of cosmetic
+    thickness is the thickness of the cosmetic layer (0 is transparent, 3 or 4 is pretty opaque)
+    csm is the [B G R] tuple with the reflectance of a very thick layer of cosmetic
     It returns a linear BGR numpy image of the face with cosmetic applied normalized 0.0 to 1.0
     """
-    opF = np.exp(-opacity)   # F in notes
+    opF = [1.0, 1.0, 1.0]
+    for idx in [0, 1, 2] :
+        opF[idx] = thickness * (1 - csm[idx]*csm[idx]) / csm[idx]
+        opF[idx] = np.exp(-opF[idx])   # F in notes
     var = np.copy(skin)
     G = np.copy(skin)
     for idx in [0,1,2] :
         var[:,:,idx] = var[:,:,idx] - csm[idx]  # delta in notes
         G[:,:,idx] = var[:,:,idx] * csm[idx] + csm[idx] * csm[idx] - 1  # G in notes
-        G[:,:,idx] =(var[:,:,idx] * opF - G[:,:,idx] * csm[idx])/(var[:,:,idx] * opF * csm[idx] - G[:,:,idx])  # R in notes
+        G[:,:,idx] =(var[:,:,idx] * opF[idx] - G[:,:,idx] * csm[idx])/(var[:,:,idx] * opF[idx] * csm[idx] - G[:,:,idx])  # R in notes
         G[:,:,idx] = G[:,:,idx] * shading  # skin color = reflectance * shading
     return  G
 
