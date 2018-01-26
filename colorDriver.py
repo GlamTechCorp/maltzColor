@@ -2,6 +2,8 @@ import cv2 as cv
 import numpy as np
 import colorLib as clib
 
+""" This shows what a face would look like covered with a layer of foundation. """
+
 # Find color of the thickest cosmetic (the darkest color)
 patch = cv.imread('armaniPatch.png', 1)
 darkest = clib.getPatchColor(patch)
@@ -23,9 +25,6 @@ for row in face:
         gray[idy,idx] = 255 * (0.33 * rR + 0.66 * gR + 0.07 * bR) # * 255 to make it viewable
         idx = idx+1
     idy = idy+1
-# cv.imshow('gray intensity', gray)  # Y viewed with sRGB TRC
-# cv.imshow('RGB intensity', face)  # RGB viewed with sRGB TRC
-# cv.waitKey(0)  # showing linear Y and RGB with an sRGB TRC often makes it too dark to see
 
 # make Yshad and refAve consistent with the image
 shading = np.array(gray/(255.0 * Yskin))  # conforms to Yshad definition in notes
@@ -77,8 +76,13 @@ for row in faceR:
 cv.imshow('with pimple', face)
 cv.imwrite('withPimple.png', face)
 
+""" Illustrate the use of difLAB to calculate the perceptual difference between two reflectances. """
+
+colDif = clib.difLAB(refAve, darkest)
+print 'color difference between face and cosmetic is', colDif
+
 # use cosmetic with thick layer reflectance matching average skin reflection
-opacity = 2.0
+opacity = 8.0
 cosmetic = refAve
 cosmeticRGB = clib.showFace(shading, faceR, opacity, cosmetic)
 
